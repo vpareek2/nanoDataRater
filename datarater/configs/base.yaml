@@ -1,0 +1,45 @@
+experiment:
+  seed: 17
+  device: "cuda"
+  precision: "bf16"
+
+data:
+  tokenizer: "gpt2"
+  seq_len_lm: 1024
+  seq_len_rater: 256
+  train_a_path: "data/train_a/*.jsonl"
+  val_path: "data/val/*.jsonl"
+  batch_size: 64
+  num_workers: 4
+
+rater:
+  layers: 8
+  d_model: 384
+  n_heads: 6
+  d_ff: 1536
+  tau: 1.0
+  w_min: 0.05
+  w_max: 1.0
+  weight_decay: 0.01
+  lr: 1.0e-4
+
+lm:
+  layers: 12
+  d_model: 512
+  n_heads: 8
+  d_ff: 2048
+  vocab_size: 50257
+  weight_decay: 0.01
+  lr: 1.0e-3
+  grad_clip: 1.0
+  checkpointing: true
+
+meta:
+  rounds: 5
+  population_K: 2
+  t_inner_steps: 1500
+  val_batches: 8
+
+deploy:
+  keep_rate: 0.6
+  mode: "filter"

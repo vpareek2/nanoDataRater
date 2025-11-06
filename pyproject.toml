@@ -1,0 +1,29 @@
+[project]
+name = "nanodatarater"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.3.4",
+    "polars>=1.35.1",
+    "pyyaml>=6.0.3",
+    "torch>=2.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.407",
+    "pytest>=8.4.2",
+    "ruff>=0.14.3",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "cuda: tests that require a CUDA device",
+]
