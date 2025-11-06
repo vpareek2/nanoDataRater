@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import torch
 from torch import nn
 
+from datarater.utils.attention import sdpa_ctx
+
 
 @dataclass(frozen=True)
 class DataRaterConfig:
@@ -57,7 +59,10 @@ class DataRater(nn.Module):
         embeddings = self.embedding(input_ids)
         position = self.position_embedding[: embeddings.size(1)]
         hidden = embeddings + position
-        encoded = self.encoder(hidden)
+        # Use first-order backend (Flash/Efficient) for standard forward pass
+        # Note: Flash Attention requires bf16/fp16 - ensure model/dtype is set appropriately
+        with sdpa_ctx("first_order"):
+            encoded = self.encoder(hidden)
         pooled = self.norm(encoded.mean(dim=1))
         logits = self.head(pooled).squeeze(-1)
         scores = torch.sigmoid(logits / self.config.tau)

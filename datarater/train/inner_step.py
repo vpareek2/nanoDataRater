@@ -9,6 +9,7 @@ from torch.nn.utils import stateless
 from datarater.data.datamodule import SequenceBatch
 from datarater.models.rater import DataRater
 from datarater.models.tiny_lm import TinyLM
+from datarater.utils.attention import sdpa_ctx
 
 
 @dataclass(frozen=True)
@@ -68,9 +69,12 @@ def run_inner_loop(
         except StopIteration as exc:  # pragma: no cover
             raise RuntimeError("Not enough training batches for inner loop") from exc
         batch = batch.to(device)
-        weights = rater(batch.input_ids)
-        logits = _functional_model_call(model, params, batch)
-        per_sequence_loss = model.compute_sequence_loss(batch.input_ids, batch.target_ids, logits=logits)
+        # Use higher-order backend (MATH) for forward pass when create_graph=True will be used
+        # This includes both rater and model since both are part of the computation graph
+        with sdpa_ctx("higher_order"):
+            weights = rater(batch.input_ids)
+            logits = _functional_model_call(model, params, batch)
+            per_sequence_loss = model.compute_sequence_loss(batch.input_ids, batch.target_ids, logits=logits)
         weighted_loss = torch.mean(weights * per_sequence_loss)
         grads = torch.autograd.grad(weighted_loss, params.values(), create_graph=True)
         params = _apply_gradients(params, grads, lr=config.lr, grad_clip=config.grad_clip)

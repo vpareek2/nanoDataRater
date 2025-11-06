@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import torch
 from torch import nn
 
+from datarater.utils.attention import sdpa_ctx
+
 
 @dataclass(frozen=True)
 class TinyLMConfig:
@@ -52,7 +54,10 @@ class TinyLM(nn.Module):
         positions = self.position_embedding[:seq_len]
         hidden = self.embedding(input_ids) + positions
         mask = self._causal_mask(seq_len, hidden.device)
-        encoded = self.blocks(hidden, mask=mask)
+        # Use first-order backend (Flash/Efficient) for standard forward pass
+        # Note: Flash Attention requires bf16/fp16 - ensure model/dtype is set appropriately
+        with sdpa_ctx("first_order"):
+            encoded = self.blocks(hidden, mask=mask)
         return self.lm_head(self.norm(encoded))
 
     def compute_sequence_loss(

@@ -1,35 +1,29 @@
 [project]
-name = "nano-datarater"
+name = "nanodatarater"
 version = "0.1.0"
-description = "Meta-learned data weighting system"
-authors = [{ name = "OpenAI" }]
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
-  "torch==2.3.1",
-  "polars>=0.20",
-  "pyyaml>=6.0",
+    "numpy>=2.3.4",
+    "polars>=1.35.1",
+    "pyyaml>=6.0.3",
+    "torch>=2.9.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-  "pytest>=8.0",
-  "ruff>=0.5",
-  "pyright>=1.1",
+    "pyright>=1.1.407",
+    "pytest>=8.4.2",
+    "ruff>=0.14.3",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-
-[tool.ruff]
-line-length = 100
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "B"]
-
-[tool.pyright]
-pythonVersion = "3.11"
-venvPath = "."
-
-[tool.uv]
-package = true
+markers = [
+    "cuda: tests that require a CUDA device",
+]

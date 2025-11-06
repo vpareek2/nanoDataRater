@@ -1,9 +1,12 @@
+import pytest
 import torch
 
 from datarater.models.rater import DataRater, DataRaterConfig
 
 
-def test_rater_score_range() -> None:
+@pytest.mark.parametrize("device_str", ["cpu", pytest.param("cuda", marks=pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA"))])
+def test_rater_score_range(device_str: str) -> None:
+    device = torch.device(device_str)
     config = DataRaterConfig(
         vocab_size=32,
         seq_len=16,
@@ -16,8 +19,10 @@ def test_rater_score_range() -> None:
         w_max=0.9,
         dropout=0.0,
     )
-    model = DataRater(config)
-    tokens = torch.randint(0, config.vocab_size, (8, config.seq_len), dtype=torch.long)
+    model = DataRater(config).to(device)
+    if device_str == "cuda":
+        model = model.to(torch.bfloat16)
+    tokens = torch.randint(0, config.vocab_size, (8, config.seq_len), dtype=torch.long, device=device)
 
     scores = model(tokens)
 
