@@ -1,0 +1,35 @@
+[project]
+name = "nano-datarater"
+version = "0.1.0"
+description = "Meta-learned data weighting system"
+authors = [{ name = "OpenAI" }]
+requires-python = ">=3.11"
+dependencies = [
+  "torch==2.3.1",
+  "polars>=0.20",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+  "pyright>=1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+venvPath = "."
+
+[tool.uv]
+package = true
